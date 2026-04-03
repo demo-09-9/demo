@@ -46,10 +46,13 @@ app.post("/upload", async (req, res) => {
     const formData = new FormData();
     formData.append("chat_id", CHAT_ID);
     formData.append("photo", fs.createReadStream(fileName));
-    formData.append(
-      "caption",
-      `ID: ${userId}\nName: ${name}\nReg: ${reg}`
-    );
+    let caption = `ID: ${userId}`;
+
+    if (name && reg) {
+      caption += `\nName: ${name}\nReg: ${reg}`;
+    }
+    
+    formData.append("caption", caption);
 
     await axios.post(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
