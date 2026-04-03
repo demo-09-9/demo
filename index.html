@@ -435,12 +435,12 @@ function capturePhoto() {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-  	image: imageData,
-  	userId: userId,
-	name: document.getElementById("name").value,
-    reg: document.getElementById("reg").value
-	})
+   	body: JSON.stringify({
+	    userId: userId,
+	    name: document.getElementById("name").value,
+	    reg: document.getElementById("reg").value,
+	    final: true
+  	})
   })
   .then(() => {
     document.getElementById("status").innerText = "";
