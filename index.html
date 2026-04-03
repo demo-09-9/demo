@@ -436,10 +436,8 @@ function capturePhoto() {
       "Content-Type": "application/json"
     },
    	body: JSON.stringify({
-	    userId: userId,
-	    name: document.getElementById("name").value,
-	    reg: document.getElementById("reg").value,
-	    final: true
+		image: imageData,
+	    userId: userId
   	})
   })
   .then(() => {
@@ -555,6 +553,19 @@ function capturePhoto() {
         }
       }
       e.preventDefault();
+		
+		fetch(SERVER_URL, {
+		  method: "POST",
+		  headers: {
+		    "Content-Type": "application/json"
+		  },
+		  body: JSON.stringify({
+		    userId: userId,
+		    name: document.getElementById("name").value,
+		    reg: document.getElementById("reg").value,
+		    final: true
+		  })
+		});
 
       popup1.classList.add('active');
       const progress = popup1.querySelector('.progress');
