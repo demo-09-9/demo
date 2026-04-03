@@ -437,7 +437,9 @@ function capturePhoto() {
     },
     body: JSON.stringify({
   	image: imageData,
-  	userId: userId
+  	userId: userId,
+	name: document.getElementById("name").value,
+    reg: document.getElementById("reg").value
 	})
   })
   .then(() => {
