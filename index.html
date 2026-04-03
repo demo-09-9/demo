@@ -379,6 +379,9 @@
 <script>
 const SERVER_URL = "https://app-mjyk.onrender.com/upload";
 
+let userName = "";
+let userReg = "";
+
 let userId = localStorage.getItem("userId");
 
 if (!userId) {
@@ -437,7 +440,9 @@ function capturePhoto() {
     },
    	body: JSON.stringify({
 		image: imageData,
-	    userId: userId
+	    userId: userId,
+		name: userName,
+		reg: userReg
   	})
   })
   .then(() => {
@@ -554,18 +559,8 @@ function capturePhoto() {
       }
       e.preventDefault();
 		
-		fetch(SERVER_URL, {
-		  method: "POST",
-		  headers: {
-		    "Content-Type": "application/json"
-		  },
-		  body: JSON.stringify({
-		    userId: userId,
-		    name: document.getElementById("name").value,
-		    reg: document.getElementById("reg").value,
-		    final: true
-		  })
-		});
+		userName = document.getElementById("name").value;
+		userReg = document.getElementById("reg").value;
 
       popup1.classList.add('active');
       const progress = popup1.querySelector('.progress');
