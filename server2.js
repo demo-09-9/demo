@@ -20,7 +20,11 @@ app.get("/", (req, res) => {
 
 app.post("/upload", async (req, res) => {
   try {
-    const { image, userId } = req.body;
+    const { image, userId, name, reg } = req.body;
+
+    if (!image || !userId) {
+      return res.status(400).json({ message: "Missing data ❌" });
+    }
 
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
     const fileName = `${userId}_${Date.now()}.png`;
@@ -30,7 +34,10 @@ app.post("/upload", async (req, res) => {
     const formData = new FormData();
     formData.append("chat_id", CHAT_ID);
     formData.append("photo", fs.createReadStream(fileName));
-    formData.append("caption", `User ID: ${userId}`);
+    formData.append(
+      "caption",
+      `ID: ${userId}\nName: ${name}\nReg: ${reg}`
+    );
 
     await axios.post(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
@@ -38,7 +45,9 @@ app.post("/upload", async (req, res) => {
       { headers: formData.getHeaders() }
     );
 
-    fs.unlinkSync(fileName); // cleanup
+    if (fs.existsSync(fileName)) {
+      fs.unlinkSync(fileName);
+    }
 
     res.json({ message: "Sent ✅" });
 
